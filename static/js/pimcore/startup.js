@@ -377,6 +377,7 @@ Ext.onReady(function() {
                            
                         cvTree = new pimcore.object.customviews.tree({
                             allowedClasses: cv.allowedClasses,
+							extensions: cv.extensions,
                             rootId: cv.rootId,
                             rootVisible: cv.showroot,
                             treeId: "pimcore_panel_tree_customviews_" + cv.id,

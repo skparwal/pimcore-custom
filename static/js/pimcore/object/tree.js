@@ -229,7 +229,23 @@ pimcore.object.tree = Class.create({
         object_types.each(function(record) {
 
             if (this.ref.attributes.reference.config.allowedClasses == "all" || in_array(record.get("id"), this.ref.attributes.reference.config.allowedClasses)) {
-                // for create new object
+				if (this.ref.attributes.reference.config.hasOwnProperty('extensions')) {
+					var tmpForbidden = [];
+					var tmpAllowed = [];
+					for (var tmpKey in this.ref.attributes.reference.config.extensions) {
+						if (this.ref.attributes.reference.config.extensions[tmpKey].hasOwnProperty('forbiddenClasses') && this.ref.attributes.path.match(tmpKey.replace(/\//g,'\\/'))) {
+							//merges with duplicates, should not matter
+							tmpForbidden = tmpForbidden.concat(this.ref.attributes.reference.config.extensions[tmpKey].forbiddenClasses);
+						}
+						if (this.ref.attributes.reference.config.extensions[tmpKey].hasOwnProperty('allowedCC') && this.ref.attributes.path.match(tmpKey.replace(/\//g,'\\/'))) {
+							if (this.ref.attributes.reference.config.extensions[tmpKey].allowedCC.hasOwnProperty(this.ref.attributes.className) &&
+								in_array(record.get('id'), this.ref.attributes.reference.config.extensions[tmpKey].allowedCC[this.ref.attributes.className]))
+								tmpAllowed.push(record.get('id'));
+						}
+					}
+					if (in_array(record.get("id"), tmpForbidden) && !in_array(record.get("id"), tmpAllowed)) return;
+				}
+				// for create new object
                 tmpMenuEntry = {
                     text: record.get("translatedText"),
                     iconCls: "pimcore_icon_object_add",
@@ -258,28 +274,42 @@ pimcore.object.tree = Class.create({
 
 
         if (this.attributes.permissions.create) {
-            menu.add(new Ext.menu.Item({
-                text: t('add_object'),
-                iconCls: "pimcore_icon_object_add",
-                hideOnClick: false,
-                menu: objectMenu.objects
-            }));
+			if (objectMenu.objects.length > 0) {
+				menu.add(new Ext.menu.Item({
+					text: t('add_object'),
+					iconCls: "pimcore_icon_object_add",
+					hideOnClick: false,
+					menu: objectMenu.objects
+				}));
+			}
 
-
-            //if (this.attributes.type == "folder") {
+			var restrictFolder = false;
+			if (this.attributes.reference.config.hasOwnProperty('extensions')) {
+				for (var tmpKey in this.attributes.reference.config.extensions) {
+					if (this.attributes.reference.config.extensions[tmpKey].hasOwnProperty('restrictFolder') && this.attributes.path.match(tmpKey.replace(/\//g,'\\/'))) {
+						restrictFolder = true;
+						break;
+					}
+				}
+			}
+            if (restrictFolder === false) {
+			//if (this.attributes.type == "folder") {
                 menu.add(new Ext.menu.Item({
                     text: t('add_folder'),
                     iconCls: "pimcore_icon_folder_add",
                     handler: this.attributes.reference.addFolder.bind(this)
                 }));
             //}
+			}
 
-            menu.add({
-                text: t('import_csv'),
-                hideOnClick: false,
-                iconCls: "pimcore_icon_object_csv_import",
-                menu:objectMenu.importer
-            });
+			if (objectMenu.objects.length > 0) {
+				menu.add({
+					text: t('import_csv'),
+					hideOnClick: false,
+					iconCls: "pimcore_icon_object_csv_import",
+					menu:objectMenu.importer
+				});
+			}
 
             //paste
             var pasteMenu = [];

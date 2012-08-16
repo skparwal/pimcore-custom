@@ -263,6 +263,7 @@ class Pimcore_Tool {
      */
     public static function getCustomViewConfig() {
         $cvConfigFile = PIMCORE_CONFIGURATION_DIRECTORY . "/customviews.xml";
+		$cveConfigFile = PIMCORE_CONFIGURATION_DIRECTORY . "/customviews_extension.xml";
         $cvData = array();
 
         if (!is_file($cvConfigFile)) {
@@ -285,7 +286,29 @@ class Pimcore_Tool {
             foreach ($cvData as &$tmp) {
                 $tmp["showroot"] = (bool) $tmp["showroot"];
             }
+			
+			if (is_file($cveConfigFile)) {
+				$xml = simplexml_load_file($cveConfigFile);
+				
+				foreach ($cvData as &$tmp) {
+					$extensions = $xml->xpath('//views/view[id='.$tmp['id'].']/extension');
+					/* @var $extension SimpleXMLElement */
+					foreach ($extensions as $extension) {
+						$tmp['extensions'][(string)$extension->path] = get_object_vars($extension);
+						if (isset($tmp['extensions'][(string)$extension->path]['restrictFolder']))
+							$tmp['extensions'][(string)$extension->path]['restrictFolder'] = true;
+						if (isset($tmp['extensions'][(string)$extension->path]['forbiddenClasses']))
+							$tmp['extensions'][(string)$extension->path]['forbiddenClasses'] = explode(',', $tmp['extensions'][(string)$extension->path]['forbiddenClasses']);
+						if (isset($tmp['extensions'][(string)$extension->path]['allowedClasses']))
+							$tmp['extensions'][(string)$extension->path]['allowedClasses'] = explode(',', $tmp['extensions'][(string)$extension->path]['allowedClasses']);
+						if (isset($tmp['extensions'][(string)$extension->path]['allowedCC'])) {
+							$tmp['extensions'][(string)$extension->path]['allowedCC'] = json_decode($tmp['extensions'][(string)$extension->path]['allowedCC'], true);
+						}
+					}
+				}
+			}
         }
+
         return $cvData;
     }
 
