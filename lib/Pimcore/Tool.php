@@ -299,8 +299,6 @@ class Pimcore_Tool {
 							$tmp['extensions'][(string)$extension->path]['restrictFolder'] = true;
 						if (isset($tmp['extensions'][(string)$extension->path]['forbiddenClasses']))
 							$tmp['extensions'][(string)$extension->path]['forbiddenClasses'] = explode(',', $tmp['extensions'][(string)$extension->path]['forbiddenClasses']);
-						if (isset($tmp['extensions'][(string)$extension->path]['allowedClasses']))
-							$tmp['extensions'][(string)$extension->path]['allowedClasses'] = explode(',', $tmp['extensions'][(string)$extension->path]['allowedClasses']);
 						if (isset($tmp['extensions'][(string)$extension->path]['allowedCC'])) {
 							$tmp['extensions'][(string)$extension->path]['allowedCC'] = json_decode($tmp['extensions'][(string)$extension->path]['allowedCC'], true);
 						}
