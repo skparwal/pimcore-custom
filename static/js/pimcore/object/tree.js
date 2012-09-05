@@ -227,20 +227,21 @@ pimcore.object.tree = Class.create({
         var tmpMenuEntryImport;
 
         object_types.each(function(record) {
-
+			
             if (this.ref.attributes.reference.config.allowedClasses == "all" || in_array(record.get("id"), this.ref.attributes.reference.config.allowedClasses)) {
 				if (this.ref.attributes.reference.config.hasOwnProperty('extensions')) {
 					var tmpForbidden = [];
 					var tmpAllowed = [];
+					var className = (this.ref.attributes.hasOwnProperty('className')) ? this.ref.attributes.className : 'folder';
 					for (var tmpKey in this.ref.attributes.reference.config.extensions) {
 						if (this.ref.attributes.reference.config.extensions[tmpKey].hasOwnProperty('forbiddenClasses') && this.ref.attributes.path.match(tmpKey.replace(/\//g,'\\/'))) {
 							//merges with duplicates, should not matter
 							tmpForbidden = tmpForbidden.concat(this.ref.attributes.reference.config.extensions[tmpKey].forbiddenClasses);
 						}
 						if (this.ref.attributes.reference.config.extensions[tmpKey].hasOwnProperty('allowedCC') && this.ref.attributes.path.match(tmpKey.replace(/\//g,'\\/'))) {
-							if (this.ref.attributes.reference.config.extensions[tmpKey].allowedCC.hasOwnProperty(this.ref.attributes.className) &&
-								in_array(record.get('id'), this.ref.attributes.reference.config.extensions[tmpKey].allowedCC[this.ref.attributes.className]))
+							if (in_array(record.get('id'), this.ref.attributes.reference.config.extensions[tmpKey].allowedCC[className])) {
 								tmpAllowed.push(record.get('id'));
+							}
 						}
 					}
 					if (in_array(record.get("id"), tmpForbidden) && !in_array(record.get("id"), tmpAllowed)) return;
