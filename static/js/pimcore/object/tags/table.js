@@ -123,6 +123,7 @@ pimcore.object.tags.table = Class.create(pimcore.object.tags.abstract, {
 
             for (var i = 0; i < keys.length; i++) {
                 columns.push({
+                	width: this.fieldConfig.width, //clime hack
                     dataIndex: keys[i],
                     editor: new Ext.form.TextField({
                         allowBlank: true
