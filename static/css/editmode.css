@@ -254,10 +254,10 @@
     width: 500px;
     height: auto;
     z-index: 99999;
-    -moz-opacity: 0.8;
-    -webkit-opacity: 0.8;
-    opacity: 0.8;
-    filter: Alpha(opacity=80);
+    -moz-opacity: 1; /* clime: 0.8 to 1 */
+    -webkit-opacity: 1; /* clime: 0.8 to 1 */
+    opacity: 1; /* clime: 0.8 to 1 */
+    filter: Alpha(opacity=100); /* clime: 80 to 100 */
 }
 
 #pimcore_wysiwyg_topbar:hover {
