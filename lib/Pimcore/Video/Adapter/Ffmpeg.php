@@ -88,7 +88,8 @@ class Pimcore_Video_Adapter_Ffmpeg extends Pimcore_Video_Adapter {
             } else*/
             if($this->getFormat() == "mp4") {
                 // `-coder 0 -bf 0 -flags2 -wpred-dct8x8 -wpredp 0´ is the same as to -vpre baseline, using this to avid problems with missing preset files
-                $arguments = "-strict experimental -f mp4 -vcodec libx264 -coder 0 -bf 0 -flags2 -wpred-dct8x8 -wpredp 0 -acodec aac -g 100 " . $arguments;
+                //$arguments = "-strict experimental -f mp4 -vcodec libx264 -coder 0 -bf 0 -flags2 -wpred-dct8x8 -wpredp 0 -acodec aac -g 100 " . $arguments;
+				$arguments = "-strict experimental -f mp4 -vcodec libx264 -vpre medium -acodec aac -g 100 " . $arguments; //clime
             } else if($this->getFormat() == "webm") {
                 $arguments = "-f webm -vcodec libvpx -acodec libvorbis -ar 44000 -g 100 " . $arguments;
             } else {
@@ -99,6 +100,7 @@ class Pimcore_Video_Adapter_Ffmpeg extends Pimcore_Video_Adapter {
             $arguments = "-threads 0 " . $arguments;
 
             $cmd = self::getFfmpegCli() . ' -i ' . realpath($this->file) . ' ' . $arguments . " " . str_replace("/", DIRECTORY_SEPARATOR, $this->getDestinationFile());
+			error_log($cmd, 3, '/data/hosting/devel-patron/logs/debug');
             Pimcore_Tool_Console::execInBackground($cmd, $this->getConversionLogFile());
         } else {
             throw new Exception("There is no destination file for video converter");
