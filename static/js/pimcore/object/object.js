@@ -458,6 +458,15 @@ pimcore.object.object = Class.create(pimcore.object.abstract, {
 
             // remove class in tree panel
             try {
+				//customviews nodes
+				var cvNode = null;
+				for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+					cv = pimcore.settings.customviews[cvs];
+					cvNode = pimcore.globalmanager.get("layout_customview_tree_"+cv.id).tree.getNodeById(this.id);
+					if (typeof cvNode != 'undefined') {
+						cvNode.getUI().removeClass("pimcore_unpublished");
+					}
+				}
                 pimcore.globalmanager.get("layout_object_tree").tree.getNodeById(this.id).getUI().removeClass("pimcore_unpublished");
             } catch (e) { };
         }
@@ -473,6 +482,15 @@ pimcore.object.object = Class.create(pimcore.object.abstract, {
     
             // set class in tree panel
             try {
+				//customviews nodes
+				var cvNode = null;
+				for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+					cv = pimcore.settings.customviews[cvs];
+					cvNode = pimcore.globalmanager.get("layout_customview_tree_"+cv.id).tree.getNodeById(this.id);
+					if (typeof cvNode != 'undefined') {
+						cvNode.getUI().addClass("pimcore_unpublished");
+					}
+				}
                 pimcore.globalmanager.get("layout_object_tree").tree.getNodeById(this.id).getUI().addClass("pimcore_unpublished");
             } catch (e) {};
         }
