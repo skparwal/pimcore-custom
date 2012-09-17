@@ -366,6 +366,21 @@ Ext.onReady(function() {
         if (user.isAllowed("objects")) {
             layoutObjectTree = new pimcore.object.tree();
             pimcore.globalmanager.add("layout_object_tree", layoutObjectTree);
+			
+			//HACK hide object tree if user doesn't have the "list" permision on tree root
+			pimcore.layout.treepanelmanager.addOnReadyCallback(function() {
+				var hideObjectTree = false;
+				for (var workspace in pimcore.currentuser.workspacesObject) {//cycle workspaces
+					if (pimcore.currentuser.workspacesObject[workspace]['cpath'] == '/' && 
+						pimcore.currentuser.workspacesObject[workspace]['list'] == '0')//cannot list on root node
+						{
+							hideObjectTree = true;
+						}
+				}
+				if (hideObjectTree === true) {
+					Ext.getCmp("pimcore_panel_tree_objects").hide();
+				}
+			});
             
             // add custom views
             if (pimcore.settings.customviews) {
@@ -387,6 +402,8 @@ Ext.onReady(function() {
                             index: (cvs+10),
                             loaderBaseParams: {}
                         });
+						
+						pimcore.globalmanager.add("layout_customview_tree_"+cv.id, cvTree);
                     }
                 }
             }

@@ -39,7 +39,6 @@ class Admin_ObjectController extends Pimcore_Controller_Action_Admin
 
     public function treeGetChildsByIdAction()
     {
-
         $object = Object_Abstract::getById($this->_getParam("node"));
         if ($object->hasChilds()) {
 
@@ -134,9 +133,11 @@ class Admin_ObjectController extends Pimcore_Controller_Action_Admin
         }
 
         $root = Object_Abstract::getById($id);
-        if ($root->isAllowed("list")) {
+		//HACK, condition moved to startup.js, where the object tree is hidden,
+		//but it is loaded so you we can remove items from customview trees
+        //if ($root->isAllowed("list")) {
             $this->_helper->json($this->getTreeNodeConfig($root));
-        }
+        //}
 
         $this->_helper->json(array("success" => false, "message" => "missing_permission"));
     }
