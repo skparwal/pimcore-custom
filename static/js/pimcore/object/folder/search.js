@@ -358,9 +358,26 @@ pimcore.object.search = Class.create(pimcore.object.helpers.gridTabAbstract, {
             handler: function (data) {
                 try {
                     try {
-                        Ext.getCmp("pimcore_panel_tree_objects").expand();
-                        var tree = pimcore.globalmanager.get("layout_object_tree");
-                        pimcore.helpers.selectPathInTree(tree.tree, data.data.idPath);
+						var customTreeMatch = false;
+						//@NOTICE check notice in object abstract
+						var tmpIDs = data.data.idPath.split('/');
+						for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+							cv = pimcore.settings.customviews[cvs];
+							if (tmpIDs.length > 0 && tmpIDs.indexOf(cv.rootId.toString()) > -1) {
+								//calculate the path to expand on the custom view tree
+								var cvNodePath = data.data.idPath.substr(data.data.idPath.indexOf("/"+cv.rootId.toString()+"/"));
+								Ext.getCmp("pimcore_panel_tree_customviews_"+cv.id).expand();
+								var tree = pimcore.globalmanager.get("layout_customview_tree_"+cv.id);
+								pimcore.helpers.selectPathInTree(tree.tree, cvNodePath);
+								customTreeMatch = true;
+								break;
+							}
+						}
+						if (!customTreeMatch) {
+							Ext.getCmp("pimcore_panel_tree_objects").expand();
+							var tree = pimcore.globalmanager.get("layout_object_tree");
+							pimcore.helpers.selectPathInTree(tree.tree, data.data.idPath);
+						}
                     } catch (e) {
                         console.log(e);
                     }
