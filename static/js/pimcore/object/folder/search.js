@@ -31,7 +31,7 @@ pimcore.object.search = Class.create(pimcore.object.helpers.gridTabAbstract, {
 
         if (this.layout == null) {
 
-            var classStore = pimcore.globalmanager.get("object_types_store");
+            //var classStore = pimcore.globalmanager.get("object_types_store");
 
             // check for classtypes inside of the folder if there is only one type don't display the selection
             var toolbarConfig;
@@ -43,6 +43,38 @@ pimcore.object.search = Class.create(pimcore.object.helpers.gridTabAbstract, {
                 }
 
                 if (this.object.data.classes.length > 1) {
+					//get class IDs
+					var classIDs = [];
+					for(var tmpKey in this.object.data.classes) {
+						if (this.object.data.classes.hasOwnProperty(tmpKey))
+							classIDs.push(this.object.data.classes[tmpKey].id);
+					}
+					//create a new store
+					//@TODO or maybe somehow use the one from globalmanager?
+					var proxyo = new Ext.data.HttpProxy({
+						url: '/admin/class/get-tree?allowed='+classIDs.join()
+					});
+					var readero = new Ext.data.JsonReader({
+						totalProperty: 'total',
+						successProperty: 'success',
+						idProperty: 'id'
+					}, [
+						{name: 'id'},
+						{name: 'text', allowBlank: false},
+						{name:"translatedText",convert: function(v, rec){
+							return ts(rec.text);
+						}},
+						{name: 'icon'},
+						{name: "propertyVisibility"}
+					]);
+					var classStore = new Ext.data.Store({
+						id: 'object_types',
+						restful: false,
+						proxy: proxyo,
+						reader: readero
+					});
+					classStore.load();
+
                     toolbarConfig = [new Ext.Toolbar.TextItem({
                         text: t("please_select_a_type")
                     }),new Ext.form.ComboBox({
@@ -326,9 +358,26 @@ pimcore.object.search = Class.create(pimcore.object.helpers.gridTabAbstract, {
             handler: function (data) {
                 try {
                     try {
-                        Ext.getCmp("pimcore_panel_tree_objects").expand();
-                        var tree = pimcore.globalmanager.get("layout_object_tree");
-                        pimcore.helpers.selectPathInTree(tree.tree, data.data.idPath);
+						var customTreeMatch = false;
+						//@NOTICE check notice in object abstract
+						var tmpIDs = data.data.idPath.split('/');
+						for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+							cv = pimcore.settings.customviews[cvs];
+							if (tmpIDs.length > 0 && tmpIDs.indexOf(cv.rootId.toString()) > -1) {
+								//calculate the path to expand on the custom view tree
+								var cvNodePath = data.data.idPath.substr(data.data.idPath.indexOf("/"+cv.rootId.toString()+"/"));
+								Ext.getCmp("pimcore_panel_tree_customviews_"+cv.id).expand();
+								var tree = pimcore.globalmanager.get("layout_customview_tree_"+cv.id);
+								pimcore.helpers.selectPathInTree(tree.tree, cvNodePath);
+								customTreeMatch = true;
+								break;
+							}
+						}
+						if (!customTreeMatch) {
+							Ext.getCmp("pimcore_panel_tree_objects").expand();
+							var tree = pimcore.globalmanager.get("layout_object_tree");
+							pimcore.helpers.selectPathInTree(tree.tree, data.data.idPath);
+						}
                     } catch (e) {
                         console.log(e);
                     }

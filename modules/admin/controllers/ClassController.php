@@ -54,10 +54,17 @@ class Admin_ClassController extends Pimcore_Controller_Action_Admin {
     }
 
     public function getTreeAction() {
-
+		$allowed = $this->getRequest()->getParam('allowed');
+		
         $classesList = new Object_Class_List();
         $classesList->setOrderKey("name");
-        $classesList->setOrder("asc");
+        $classesList->setOrder("asc");		
+		if ($allowed) {
+			$classesList->setCondition(Pimcore_Resource_Mysql::get()->quoteInto(
+				'id IN (?)',
+				explode(',', $allowed)
+			));
+		}
         $classes = $classesList->load();
 
 

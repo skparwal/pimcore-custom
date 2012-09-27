@@ -111,10 +111,15 @@ pimcore.helpers.openElement = function (id, type, subtype) {
 };
 
 
-pimcore.helpers.addTreeNodeLoadingIndicator = function (type, id) {
+pimcore.helpers.addTreeNodeLoadingIndicator = function (type, id, cvTreeId) {
     // display loading indicator on treenode
     try {
-        var tree = pimcore.globalmanager.get("layout_" + type + "_tree");
+		var tree = null;
+		if (type == "customview") {
+			tree = pimcore.globalmanager.get("layout_" + type + "_tree_"+cvTreeId);
+		} else {
+			tree = pimcore.globalmanager.get("layout_" + type + "_tree");
+		}
         var node = tree.tree.getNodeById(id);
         if (node) {
 
@@ -132,10 +137,15 @@ pimcore.helpers.addTreeNodeLoadingIndicator = function (type, id) {
     }
 }
 
-pimcore.helpers.removeTreeNodeLoadingIndicator = function (type, id) {
+pimcore.helpers.removeTreeNodeLoadingIndicator = function (type, id, cvTreeId) {
     // remove loading indicator on treenode
     try {
-        var tree = pimcore.globalmanager.get("layout_" + type + "_tree");
+		var tree = null;
+		if (type == "customview") {
+			tree = pimcore.globalmanager.get("layout_" + type + "_tree_"+cvTreeId);
+		} else {
+			tree = pimcore.globalmanager.get("layout_" + type + "_tree");
+		}
         var node = tree.tree.getNodeById(id);
 
         if (node.originalIconSrc) {
@@ -697,8 +707,17 @@ pimcore.helpers.deleteObjectFromServer = function (id, r, callback, button) {
     if (button == "ok" && r.deletejobs) {
 
         var node = pimcore.globalmanager.get("layout_object_tree").tree.getNodeById(id);
-        pimcore.helpers.addTreeNodeLoadingIndicator("object", id);
-
+		//customviews nodes
+		var cvNode = null;
+		for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+			cv = pimcore.settings.customviews[cvs];
+			cvNode = pimcore.globalmanager.get("layout_customview_tree_"+cv.id).tree.getNodeById(id);
+			if (typeof cvNode != 'undefined') {
+				pimcore.helpers.addTreeNodeLoadingIndicator("customview", id, cv.id);
+				cvNode.getUI().addClass("pimcore_delete");
+			}
+		}
+		pimcore.helpers.addTreeNodeLoadingIndicator("object", id);
         if(node) {
             node.getUI().addClass("pimcore_delete");
         }
@@ -736,9 +755,20 @@ pimcore.helpers.deleteObjectFromServer = function (id, r, callback, button) {
 
                 var node = pimcore.globalmanager.get("layout_object_tree").tree.getNodeById(id);
                 try {
+					//customviews nodes
+					var cvNode = null;
+					for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+						cv = pimcore.settings.customviews[cvs];
+						cvNode = pimcore.globalmanager.get("layout_customview_tree_"+cv.id).tree.getNodeById(id);
+						if (typeof cvNode != 'undefined') {
+							cvNode.getUI().removeClass("pimcore_delete");
+							pimcore.helpers.addTreeNodeLoadingIndicator("customview", id, cv.id);
+							cvNode.remove();
+						}
+					}
                     if(node) {
                         node.getUI().removeClass("pimcore_delete");
-                    }
+					}
                     //Ext.get(this.getUI().getIconEl()).dom.setAttribute("class", this.originalClass);
                     pimcore.helpers.removeTreeNodeLoadingIndicator("object", id);
 
@@ -747,7 +777,16 @@ pimcore.helpers.deleteObjectFromServer = function (id, r, callback, button) {
                     }
                 } catch(e) {
                     console.log(e);
-                    pimcore.helpers.showNotification(t("error"), t("error_deleting_object"), "error");
+                    pimcore.helpers.showNotification(t("error"), t("error_deleting_object"), "error");			
+					//customviews nodes
+					var cvNode = null;
+					for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+						cv = pimcore.settings.customviews[cvs];
+						cvNode = pimcore.globalmanager.get("layout_customview_tree_"+cv.id).tree.getNodeById(id);
+						if (typeof cvNode != 'undefined') {
+							cvNode.parentNode.reload();
+						}
+					}	
                     if(node) {
                         node.parentNode.reload();
                     }
@@ -774,7 +813,15 @@ pimcore.helpers.deleteObjectFromServer = function (id, r, callback, button) {
                 this.deleteWindow.close();
 
                 pimcore.helpers.showNotification(t("error"), t("error_deleting_object"), "error", t(message));
-
+				//customviews nodes
+				var cvNode = null;
+				for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
+					cv = pimcore.settings.customviews[cvs];
+					cvNode = pimcore.globalmanager.get("layout_customview_tree_"+cv.id).tree.getNodeById(id);
+					if (typeof cvNode != 'undefined') {
+						cvNode.parentNode.reload();
+					}
+				}
                 var node = pimcore.globalmanager.get("layout_object_tree").tree.getNodeById(id);
                 if(node) {
                     node.parentNode.reload();
