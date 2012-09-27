@@ -516,6 +516,18 @@
         catch (Exception $e) {}
     ?>
 
+	<!--clime: hack to open accordeons easily-->
+	<script>
+	$(function() {
+		$('.objectlayout_element_Layout .x-panel-header').live('hover', function() {
+			$(this).css('cursor', 'pointer');
+		});
+		$('.objectlayout_element_Layout .x-panel-header').live('click', function() {
+			$(this).find('.x-tool-toggle').click();
+		});
+	});
+	</script>
+
     <?php // MUST BE THE LAST LINE ?>
     <script type="text/javascript" src="/pimcore/static/js/pimcore/startup.js?_dc=<?php echo Pimcore_Version::$revision ?>"></script>
 

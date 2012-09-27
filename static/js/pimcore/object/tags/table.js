@@ -123,7 +123,7 @@ pimcore.object.tags.table = Class.create(pimcore.object.tags.abstract, {
 
             for (var i = 0; i < keys.length; i++) {
                 columns.push({
-                	width: this.fieldConfig.width, //clime hack
+                	width: this.fieldConfig.width,
                     dataIndex: keys[i],
                     editor: new Ext.form.TextField({
                         allowBlank: true
@@ -134,6 +134,7 @@ pimcore.object.tags.table = Class.create(pimcore.object.tags.abstract, {
 
 
         this.grid = new Ext.grid.EditorGridPanel({
+			cls: 'clime-custom-grid', //clime
             store: this.store,
             width: 700,
             height: 300,

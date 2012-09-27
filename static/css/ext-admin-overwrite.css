@@ -63,3 +63,11 @@ background-image:url("/pimcore/static/img/icon/arrow_refresh.png") !important;
 .x-menu-sep {
     height: 1px;
 }
+
+/*table cell default height*/
+.clime-custom-grid .x-grid3-cell {
+	height: 20px;
+}
+
+.clime-custom-grid .x-grid3-hd-row {
+	display:none;
