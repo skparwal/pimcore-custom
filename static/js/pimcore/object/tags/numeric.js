@@ -80,7 +80,7 @@ pimcore.object.tags.numeric = Class.create(pimcore.object.tags.abstract, {
             cls: "object_field"
         };
 
-        if (this.data) {
+        if (this.data !== null) {
             input.value = this.data;
         }
 

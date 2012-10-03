@@ -250,7 +250,7 @@ pimcore.helpers.getValidFilename = function (value) {
 
 };
 
-pimcore.helpers.showNotification = function (title, text, type, errorText) {
+pimcore.helpers.showNotification = function (title, text, type, errorText, delay) {
     // icon types: info,error,success
     if(type == "error"){
 
@@ -264,12 +264,13 @@ pimcore.helpers.showNotification = function (title, text, type, errorText) {
             icon: Ext.MessageBox.ERROR
         });
     } else {
+		var hideDelay = (typeof delay == 'undefined') ? 1000 : delay;
         var notification = new Ext.ux.Notification({
             iconCls: 'icon_notification_' + type,
             title: title,
             html: text,
             autoDestroy: true,
-            hideDelay:  1000
+            hideDelay: hideDelay
         });
         notification.show(document);
     }
