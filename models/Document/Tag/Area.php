@@ -164,7 +164,7 @@ class Document_Tag_Area extends Document_Tag {
             if(is_file($view)) {
                 $editmode = $this->getView()->editmode;
 
-                echo '<div class="pimcore_area_' . $options["type"] . ' pimcore_area_content">';
+                //echo '<div class="pimcore_area_' . $options["type"] . ' pimcore_area_content">';
 
                 if(is_file($edit) && $editmode) {
                     echo '<div class="pimcore_area_edit_button"></div>';
@@ -181,7 +181,7 @@ class Document_Tag_Area extends Document_Tag {
                     echo '</div>';
                 }
 
-                echo '</div>';
+                //echo '</div>';
 
             }
         }
