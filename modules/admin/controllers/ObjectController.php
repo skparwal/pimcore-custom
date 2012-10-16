@@ -181,6 +181,24 @@ class Admin_ObjectController extends Pimcore_Controller_Action_Admin
             );
         }
         else {
+			//assemble object preview URL
+			$previewUrl = $child->getClass()->getPreviewUrl();
+			if (!empty($previewUrl)) {
+				$vars = get_object_vars($child);
+				$assembled = true;
+				foreach ($vars as $key => $value) {
+					if(!empty($value) && strpos($previewUrl, "%".$key) !== false) {
+						$previewUrl = str_replace("%".$key, urlencode($value), $previewUrl);
+					} else if (strpos($previewUrl, "%".$key) !== false) {
+						$assembled = false;
+						break;
+					}
+					if ($assembled) {
+						$tmpObject['previewUrl'] = $previewUrl;
+					}
+				}
+				
+			}
             $tmpObject["published"] = $child->isPublished();
             $tmpObject["className"] = $child->getClass()->getName();
             $tmpObject["qtipCfg"] = array(
