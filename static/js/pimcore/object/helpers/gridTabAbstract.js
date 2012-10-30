@@ -367,6 +367,35 @@ pimcore.object.helpers.gridTabAbstract = Class.create({
         });
         pimcore.helpers.download(path);
     },
+	
+    startCustomCsvExport: function () {
+        var values = [];
+        var filters = "";
+        var condition = "";
+
+        if(this.sqlButton.pressed) {
+            condition = this.sqlEditor.getValue();
+        } else {
+            var filterData = this.gridfilters.getFilterData();
+            if(filterData.length > 0) {
+                filters = this.gridfilters.buildQuery(filterData).filter;
+            }
+        }
+
+		//get field names
+		var fields = [];
+		for (var key in this.fieldObject) fields.push(key);
+        var path = "/admin/object-helper/export-custom/classId/" + this.classId + "/folderId/" + this.element.id ;
+        path = path + "/?" + Ext.urlEncode({
+            filter: filters,
+            condition: condition,
+            objecttype: this.objecttype,
+			fields: fields.join(),
+			order: (this.sortinfo) ? this.sortinfo.field : 0,
+			direction: (this.sortinfo) ? this.sortinfo.direction : 0
+        });
+        pimcore.helpers.download(path);
+    },
 
 
     createSqlEditor: function() {

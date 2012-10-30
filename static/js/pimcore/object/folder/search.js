@@ -258,6 +258,12 @@ pimcore.object.search = Class.create(pimcore.object.helpers.gridTabAbstract, {
 
                 }.bind(this)
             },"-",{
+                text: t("export_custom_csv"),
+                iconCls: "pimcore_icon_export",
+                handler: function(){
+					this.startCustomCsvExport();
+                }.bind(this)
+            },"-",{
                 text: t("grid_column_config"),
                 iconCls: "pimcore_icon_grid_column_config",
                 handler: this.openColumnConfig.bind(this)

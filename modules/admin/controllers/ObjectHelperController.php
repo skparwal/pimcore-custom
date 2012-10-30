@@ -661,6 +661,192 @@ class Admin_ObjectHelperController extends Pimcore_Controller_Action_Admin {
         echo $csv;
         exit;
     }
+	
+    public function exportCustomAction()
+    {
+
+        $folder = Object_Abstract::getById($this->_getParam("folderId"));
+        $class = Object_Class::getById($this->_getParam("classId"));
+		
+		//get available fields
+		$availableFields = $this->gridGetColumnConfig($this->_getParam("classId"), explode(',', $this->_getParam('fields')));
+		//create translator from admin translations
+		$translator = new Pimcore_Translate_Admin($this->getLanguage());
+		//get info about column configuration and process it
+		$fields = array();
+		$bricks = array();
+		$labels = array();
+		foreach($availableFields as $key => $column) {
+			$fields[$key] = $column['key'];
+			$labels[$column['key']] = $translator->translate($column['label']);
+			//are object bricks used?
+			$parts = explode("~", $column['key']);
+			if(count($parts) > 1) {
+				$bricks[$parts[0]] = $parts[0];
+			}
+		}
+        $className = $class->getName();
+
+        $listClass = "Object_" . ucfirst($className) . "_List";
+
+        if ($this->_getParam("filter")) {
+            $conditionFilters = Object_Service::getFilterCondition($this->_getParam("filter"), $class);
+        }
+        if ($this->_getParam("condition")) {
+            $conditionFilters = " AND (" . $this->_getParam("condition") . ")";
+        }
+
+        $list = new $listClass();
+        $list->setCondition("o_path LIKE '" . $folder->getFullPath() . "%'" . $conditionFilters);
+        $order = $this->_getParam('order');
+		$direction = $this->_getParam('direction');
+		if ($order && $direction) {
+			$list->setOrderKey($order);
+			$list->setOrder($direction);
+		} else {
+			$list->setOrder("ASC");
+			$list->setOrderKey("o_id");
+		}
+
+        if($this->_getParam("objecttype")) {
+            $list->setObjectTypes(array($this->_getParam("objecttype")));
+        }
+		
+		//add bricks
+		if(!empty($bricks)) {
+			foreach($bricks as $b) {
+				$list->addObjectbrick($b);
+			}
+		}
+
+        $list->load();
+
+        $objects = array();
+        foreach ($list->getObjects() as $object) {
+
+            if ($object instanceof Object_Concrete) {
+				$tmp = Object_Service::gridObjectData($object, $fields);
+                $o = array();
+				//convert values to human readable format
+				foreach ($fields as $key => $field) {
+					$value = $tmp[$field];
+					if ($value === null) $value = '';
+					if (is_bool($value)) $value = ($value) ? $translator->translate('yes') : $translator->translate('no');
+					$type = isset($availableFields[$key]['layout']) ? $availableFields[$key]['layout'] : null;
+					if ($field == 'creationDate' || $field == 'modificationDate' || $type instanceof Object_Class_Data_Date || $type instanceof Object_Class_Data_Datetime) {
+						$value = date('j.n.Y H:i:s', (int)$value);
+					}
+					$o[$labels[$field]] = $value;
+				}
+                $objects[] = $o;
+            }
+        }
+        //create csv
+        if(!empty($objects)) {
+            $columns = array_keys($objects[0]);
+            foreach ($columns as $key => $value) {
+                $columns[$key] = '"' . $value . '"';
+            }
+            $csv = implode(";", $columns) . "\r\n";
+            foreach ($objects as $o) {
+                foreach ($o as $key => $value) {
+
+                    //clean value of evil stuff such as " and linebreaks
+                    if (is_string($value)) {
+                        $value = strip_tags($value);
+                        $value = str_replace('"', '', $value);
+                        $value = str_replace("\r", "", $value);
+                        $value = str_replace("\n", "", $value);
+
+                        $o[$key] = '"' . $value . '"';
+                    }
+                }
+                $csv .= implode(";", $o) . "\r\n";
+            }
+
+        }
+		header('Content-Encoding: UTF-8');
+        header('Content-type: text/csv; charset=UTF-8');
+        header("Content-Disposition: attachment; filename=\"export.csv\"");
+		echo "\xEF\xBB\xBF";
+        echo $csv;
+        exit;
+    }
+	
+    private function gridGetColumnConfig($id, $columns)
+    {
+
+		$class = Object_Class::getById($id);
+
+        $gridType = "search";
+
+        $fields = $class->getFieldDefinitions();
+
+        $localizedFields = array();
+        $objectbrickFields = array();
+        foreach ($fields as $key => $field) {
+            if ($field instanceof Object_Class_Data_Localizedfields) {
+                $localizedFields[] = $field;
+            } else if($field instanceof Object_Class_Data_Objectbricks) {
+                $objectbrickFields[] = $field;
+            }
+
+        }
+
+        $availableFields = array();
+        $systemColumns = array("id", "fullpath", "published", "creationDate", "modificationDate", "filename", "classname");
+
+		//$savedColumns = $gridConfig['columns'];
+	
+		//foreach($savedColumns as $key => $sc) {
+		foreach($columns as $key => $columnKey) {
+			if(in_array($columnKey, $systemColumns)) {
+				$availableFields[] = array(
+					"key" => $columnKey,
+					"type" => "system",
+					"label" => $columnKey,
+					"position" => $key
+				);
+			} else {
+				$keyParts = explode("~", $columnKey);
+				if(count($keyParts) > 1) {
+					$brick = $keyParts[0];
+					$columnKey = $keyParts[1];
+
+					$brickClass = Object_Objectbrick_Definition::getByKey($brick);
+					$fd = $brickClass->getFieldDefinition($columnKey);
+					if(!empty($fd)) {
+						$fieldConfig = $this->getFieldGridConfig($fd, $gridType, $key, true, $brick . "~");
+						if(!empty($fieldConfig)) {
+							$availableFields[] = $fieldConfig;
+						}
+					}
+				} else {
+					$fd = $class->getFieldDefinition($columnKey);
+					//if not found, look for localized fields
+					if(empty($fd)) {
+						foreach($localizedFields as $lf) {
+							$fd = $lf->getFieldDefinition($columnKey);
+							if(!empty($fd)) {
+								break;
+							}
+						}
+					}
+
+					if(!empty($fd)) {
+						$fieldConfig = $this->getFieldGridConfig($fd, $gridType, $key, true);
+						if(!empty($fieldConfig)) {
+							$availableFields[] = $fieldConfig;
+						}
+					}
+
+				}
+
+			}
+		}
+		
+		return $availableFields;
+    }
 
 
     /**

@@ -903,6 +903,7 @@
 "allowed_document_types","Allowed Document Types"
 "allowed_asset_types","Allowed Asset Types"
 "export_csv","CSV Export"
+"export_custom_csv","Custom export"
 "import_csv","CSV Import"
 "show_welcome_screen","Show welcome screen on startup"
 "edit_user_permissions","Edit user permissions"
