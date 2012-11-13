@@ -78,7 +78,17 @@ class Pimcore_Resource_Wrapper {
             }
         }
 
-        $r = call_user_func_array(array($this->getResource(), $method), $args);
+		//HACK - do not execute transaction methods when
+		//Zend_Registry::set('explicit_transactions', true) was set earlier in code
+		$transactionMethodsToCheck = array('beginTransaction', 'rollBack', 'commit');
+		try {
+			$explicitTransactions = Zend_Registry::get('explicit_transactions');
+		} catch (Exception $e) {
+			$explicitTransactions = false;
+		}
+		if (!$explicitTransactions || !in_array($method, $transactionMethodsToCheck)) {
+			$r = call_user_func_array(array($this->getResource(), $method), $args);
+		}
 
         if(Pimcore::inAdmin() && $capture) {
             Pimcore_Resource::stopCapturingDefinitionModifications();
