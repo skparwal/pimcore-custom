@@ -46,7 +46,6 @@ class Staticroute_Resource extends Pimcore_Model_Resource_Abstract {
         }
 
         $data = $this->db->fetchRow("SELECT * FROM staticroutes WHERE id = ?", $this->model->getId());
-        $this->assignVariablesToModel($data);
         
         if($data["id"]) {
             $this->assignVariablesToModel($data);
@@ -66,7 +65,7 @@ class Staticroute_Resource extends Pimcore_Model_Resource_Abstract {
         if ($name != null) {
             $this->model->setName($name);
         }
-        $data = $this->db->fetchRow("SELECT id FROM staticroutes WHERE name = ?", $this->model->getName());
+        $data = $this->db->fetchRow("SELECT * FROM staticroutes WHERE name = ?", $this->model->getName());
         
         if($data["id"]) {
             $this->assignVariablesToModel($data);

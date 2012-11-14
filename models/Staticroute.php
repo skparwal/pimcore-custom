@@ -138,26 +138,32 @@ class Staticroute extends Pimcore_Model_Abstract {
 
 
         // check if pimcore already knows the id for this $name, if yes just return it
-        if(array_key_exists($name, self::$nameIdMappingCache)) {
+        /*if(array_key_exists($name, self::$nameIdMappingCache)) {
             return self::getById(self::$nameIdMappingCache[$name]);
-        }
+        }*/
+		
+		//cache staticroutes by name
+		$cacheKey = 'staticroute_'.preg_replace("/[^0-9a-zA-Z_]/", "_", $name);
+		if (!$route = Pimcore_Model_Cache::load($cacheKey)) {
+			// create a tmp object to obtain the id
+			$route = new self();
 
-        // create a tmp object to obtain the id
-        $route = new self();
-
-        try {
-            $route->getResource()->getByName($name);
-        } catch (Exception $e) {
-            Logger::error($e);
-            return null;
-        }
+			try {
+				$route->getResource()->getByName($name);
+				Pimcore_Model_Cache::save($route, $cacheKey, array('staticroute'));
+			} catch (Exception $e) {
+				Logger::error($e);
+				return null;
+			}
+		}
+		return $route;
 
         // to have a singleton in a way. like all instances of Element_Interface do also, like Object_Abstract
-        if($route->getId() > 0) {
+        /*if($route->getId() > 0) {
             // add it to the mini-per request cache
             self::$nameIdMappingCache[$name] = $route->getId();
             return self::getById($route->getId());
-        }
+        }*/
     }
 
     /**
