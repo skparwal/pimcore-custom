@@ -286,7 +286,7 @@ class Admin_EmailController extends Pimcore_Controller_Action_Admin_Document
         $emailLog = Document_Email_Log::getById($this->_getParam('id'));
 
         if($emailLog instanceof Document_Email_Log){
-            $mail = new Pimcore_Mail();
+            $mail = new Pimcore_Mail('utf-8');
             $mail->preventDebugInformationAppending();
 
             if($html = $emailLog->getHtmlLog()){
